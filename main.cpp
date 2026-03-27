@@ -3,6 +3,6 @@
 
 int main(){
     std::system("date");
-    printf("Hello World!\n");
+    printf("Hello fdsa!\n");
     return 0;
 }
