@@ -3,12 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
-#include <string>
+#include <string_view>
 
 
 
-int run_initial_scan(){
+int run_initial_scan(std::string_view ipAddress){
 //Command: nmap -Pn -sC -sV -oA [NAME_FOR_SCAN_FILES]
 // fork a new process, set nmap and cli args for new process, run process, catch output via pipe
     int pipefd[2];
@@ -35,7 +36,7 @@ int run_initial_scan(){
 
         close(pipefd[1]);
 
-        execvp("nmap", (char*[]){"-Pn", "-sC", "-sV", nullptr});
+        execvp("nmap", (char*[]){, "-Pn", "-sC", "-sV", nullptr});
 
         perror("execvp failed");
         exit(EXIT_FAILURE);
@@ -53,6 +54,10 @@ int run_initial_scan(){
         close(pipefd[0]);
 
         waitpid(cpid, nullptr, 0);
+
+        int fd = open("nmap_initial_scan_output.txt", O_CREAT | O_TRUNC | O_WRONLY, 06400);
+        write(fd, output.data(), output.size());
+        close(fd);
 
     }
 
