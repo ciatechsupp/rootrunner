@@ -5,17 +5,17 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <string_view>
+#include <string>
+#include <vector>
 
 
 
-int run_initial_scan(std::string_view ipAddress){
+int run_initial_scan(const std::string& ipAddress){
 //Command: nmap -Pn -sC -sV -oA [NAME_FOR_SCAN_FILES]
 // fork a new process, set nmap and cli args for new process, run process, catch output via pipe
     int pipefd[2];
     pid_t cpid;
     //pipe(pipefd);
-    char buf;
 
     if (pipe(pipefd) == -1){
         perror("pipe");
@@ -36,7 +36,25 @@ int run_initial_scan(std::string_view ipAddress){
 
         close(pipefd[1]);
 
-        execvp("nmap", (char*[]){, "-Pn", "-sC", "-sV", nullptr});
+        //C version, assuming upAddress is a std::string
+        const char* args[] = {
+            "nmap",
+            "-Pn",
+            "-sC",
+            "-sV",
+            ipAddress.c_str(), // user input string
+            nullptr
+        };
+
+        execvp("nmap", const_cast<char* const*>(args));
+
+        //C++ version
+        // std::vector<std::string> argStrings{"nmap", "-Pn", "-sC", "-sV", ipAddress};
+        // std::vector<char*> argss;
+        // for (auto &s: argStrings) argss.push_back(s.data());
+        // argss.push_back(nullptr);
+
+        // execvp("nmap", argss.data());
 
         perror("execvp failed");
         exit(EXIT_FAILURE);
@@ -55,9 +73,20 @@ int run_initial_scan(std::string_view ipAddress){
 
         waitpid(cpid, nullptr, 0);
 
-        int fd = open("nmap_initial_scan_output.txt", O_CREAT | O_TRUNC | O_WRONLY, 06400);
-        write(fd, output.data(), output.size());
+        int fd = open("nmap_initial_scan_output.txt", O_CREAT | O_TRUNC | O_WRONLY, 0640);
+        if (fd == -1){
+            perror("Couldn't open output file for nmap log");
+            exit(EXIT_FAILURE);
+        }
+    
+        if (write(fd, output.data(), output.size()) == -1){
+            perror("Couldn't write nmap log data to output file");
+            exit(EXIT_FAILURE);
+        };
+
         close(fd);
+
+        return 0;
 
     }
 

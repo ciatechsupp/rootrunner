@@ -1,5 +1,6 @@
 #include <string>
 #include <pthread.h>
+#include "nmaprunner.hpp"
 
 class RootRunner{
     private:
@@ -7,7 +8,9 @@ class RootRunner{
 
     public:
         RootRunner(std::string ipAddr)
-            : target_ip {ipAddr}{}
+            : target_ip {ipAddr}{
+                run_initial_scan(ipAddr);
+            }
 
         // int nmapRunner(){
         // }
@@ -22,3 +25,7 @@ class RootRunner{
         
 
 };
+
+int main(){
+    RootRunner r("127.0.0.1");
+}
