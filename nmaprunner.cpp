@@ -1,36 +1,31 @@
-#include <string_view>
 #include "executor.hpp"
 #include "nmaprunner.hpp"
 
-class NmapRunner{
-    std::string_view ipAddress;
-    std::string data;
-public:
-    NmapRunner(std::string_view ipAddress) : ipAddress{ipAddress} {}
+NmapRunner::NmapRunner(const std::string& ipAddress) : ipAddress{ipAddress}, data{} {};
 
-    int service_script_scan(){
-        const char* params[]{"nmap", "-Pn", "-sC", "-sV", "-oA"};
-        data.clear();
-        
-        return 0;
-    }
+int NmapRunner::service_script_scan(){
+    const char* params[]{"nmap", "-Pn", "-sC", "-sV", "-oA", ipAddress.c_str(), nullptr};
+    data.clear();
+    int result = spawnProc(&data, params);
+    return result;
+}
 
-    int udp_scan(){
-        return 0;
-    }
+int NmapRunner::udp_scan(){
+    return 0;
+}
 
-    int tcp_syn_scan(){
-        return 0;
-    }
+int NmapRunner::simple_scan(){
+    const char* params[]{"nmap", "-n", "-v", "-sT", "-A", ipAddress.c_str(), nullptr};
+    data.clear();
+    int result = spawnProc(&data, params);
 
-    int tcp_connect_scan(){
-        return 0;
-    }
+    return result;
+}
 
-    int suggested_scan(){
-        return 0;
-    }
+int NmapRunner::full_tcp_scan(){
+    return 0;
+}
 
-
-
-};
+int NmapRunner::suggested_scan(){
+    return 0;
+}

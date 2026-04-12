@@ -12,8 +12,8 @@
 #include <vector>
 
 
-template<typename... Args>
-int spawnProc(std::string *output, const char* program, Args... args){
+template<typename T, std::size_t N>
+int spawnProc(std::string *output, T (&args)[N]){
 //Command: nmap -Pn -sC -sV -oA [NAME_FOR_SCAN_FILES]
 // fork a new process, set nmap and cli args for new process, run process, catch output via pipe
     int pipefd[2];
@@ -49,17 +49,17 @@ int spawnProc(std::string *output, const char* program, Args... args){
         //     nullptr
         // };
 
-        std::vector<std::string> argStrings{args...};
+        //std::vector<std::string> argStrings{args...};
         std::vector<char*> argv;
 
-        for (auto& s : argStrings){
-            argv.push_back(s.data());
+        for (std::size_t i = 0; i < N; ++i){
+            argv.push_back(const_cast<char*>(args[i]));
         }
         argv.push_back(nullptr);
 
         // execvp("nmap", const_cast<char* const*>(args));
 
-        execvp(program, argv.data());
+        execvp(args[0], argv.data());
 
         //C++ version
         // std::vector<std::string> argStrings{"nmap", "-Pn", "-sC", "-sV", ipAddress};

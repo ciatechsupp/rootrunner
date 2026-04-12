@@ -1,5 +1,4 @@
 #include <string>
-#include <string_view>
 #include <vector>
 #include <unordered_map>
 #include <pthread.h>
@@ -24,6 +23,7 @@ class RootRunner{
 
         int addScanResult(const std::string& scanType, const std::string& scanName, const std::string& scanOutput){
             scanResults[scanType][scanName] = scanOutput;
+            return 0;
         }
 
         const std::string& getScanResult(const std::string& scanType, const std::string& scanName){
