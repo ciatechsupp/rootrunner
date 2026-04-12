@@ -13,7 +13,7 @@
 
 
 template<typename... Args>
-int spawnProc(const char* program, Args... args){
+int spawnProc(std::string *output, const char* program, Args... args){
 //Command: nmap -Pn -sC -sV -oA [NAME_FOR_SCAN_FILES]
 // fork a new process, set nmap and cli args for new process, run process, catch output via pipe
     int pipefd[2];
@@ -76,28 +76,28 @@ int spawnProc(const char* program, Args... args){
 
         char buffer[4096];
         ssize_t count;
-        std::string output;
+        //std::string output;
 
         while ((count = read(pipefd[0], buffer, sizeof(buffer))) > 0){
-            output.append(buffer, count);
+            output->append(buffer, count);
         }
 
         close(pipefd[0]);
 
         waitpid(cpid, nullptr, 0);
 
-        int fd = open("nmap_initial_scan_output.txt", O_CREAT | O_TRUNC | O_WRONLY, 0640);
-        if (fd == -1){
-            perror("Couldn't open output file for nmap log");
-            exit(EXIT_FAILURE);
-        }
+        // int fd = open("nmap_initial_scan_output.txt", O_CREAT | O_TRUNC | O_WRONLY, 0640);
+        // if (fd == -1){
+        //     perror("Couldn't open output file for nmap log");
+        //     exit(EXIT_FAILURE);
+        // }
     
-        if (write(fd, output.data(), output.size()) == -1){
-            perror("Couldn't write nmap log data to output file");
-            exit(EXIT_FAILURE);
-        };
+        // if (write(fd, output.data(), output.size()) == -1){
+        //     perror("Couldn't write nmap log data to output file");
+        //     exit(EXIT_FAILURE);
+        // };
 
-        close(fd);
+        // close(fd);
 
         return 0;
 
