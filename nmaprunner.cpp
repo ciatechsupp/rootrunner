@@ -1,10 +1,12 @@
+#include <string_view>
 #include "executor.hpp"
+#include "nmaprunner.hpp"
 
 class NmapRunner{
-    std::string ipAddress;
+    std::string_view ipAddress;
     std::string data;
 public:
-    NmapRunner(std::string ipAddress) : ipAddress{ipAddress} {}
+    NmapRunner(std::string_view ipAddress) : ipAddress{ipAddress} {}
 
     int service_script_scan(){
         const char* params[]{"nmap", "-Pn", "-sC", "-sV", "-oA"};
