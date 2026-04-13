@@ -13,7 +13,8 @@ class NmapRunner{
         int udp_scan();
         int simple_scan();
         int full_tcp_scan();
-        int suggested_scan();
+        int vuln_scan();
+        int suggested_scans();
 };
 
 #endif

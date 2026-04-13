@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 
-
 template<typename T, std::size_t N>
 int spawnProc(std::string *output, T (&args)[N]){
 //Command: nmap -Pn -sC -sV -oA [NAME_FOR_SCAN_FILES]
