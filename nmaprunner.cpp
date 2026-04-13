@@ -8,11 +8,19 @@ int NmapRunner::service_script_scan(){
     const char* params[]{"nmap", "-Pn", "-n", "-sC", "-sV", "-oA", ipAddress.c_str(), nullptr};
     data.clear();
     int result = spawnProc(&data, params);
+    if(result != 0){
+        std::cout << "There was a failure spawning a process for servuce script scan" << std::endl;
+    }
     return result;
 }
 
 int NmapRunner::udp_scan(){
     const char* params[]{"nmap", "-Pn", "-n", "-sUV", "-A", ipAddress.c_str(), nullptr};
+    data.clear();
+    int result = spawnProc(&data, params);
+    if(result != 0){
+        std::cout << "There was a failure spawning a process for UDP scan" << std::endl;
+    }
     return 0;
 }
 
@@ -20,7 +28,9 @@ int NmapRunner::simple_scan(){
     const char* params[]{"nmap", "-Pn", "-n", "-v", "-sT", "-A", ipAddress.c_str(), nullptr};
     data.clear();
     int result = spawnProc(&data, params);
-
+    if(result != 0){
+        std::cout << "There was a failure spawning a process for simple scan" << std::endl;
+    }
     return result;
 }
 
@@ -28,7 +38,9 @@ int NmapRunner::full_tcp_scan(){
     const char* params[]{"nmap", "-Pn", "-n", "-v", "-sT", "-p-", ipAddress.c_str(), nullptr};
     data.clear();
     int result = spawnProc(&data, params);
-
+    if(result != 0){
+        std::cout << "There was a failure spawning a process for full tcp scan" << std::endl;
+    }
     return result;
 }
 
@@ -36,7 +48,9 @@ int NmapRunner::vuln_scan(){
     const char* params[]{"nmap", "-Pn", "-n", "--script=vuln", "-sT", "-A", ipAddress.c_str(), nullptr};
     data.clear();
     int result = spawnProc(&data, params);
-
+    if(result != 0){
+        std::cout << "There was a failure spawning a process for vuln scan" << std::endl;
+    }
     return result;
 }
 
