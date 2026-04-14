@@ -2,11 +2,10 @@
 #include "executor.hpp"
 #include "nmaprunner.hpp"
 
-NmapRunner::NmapRunner(const std::string& ipAddress) : ipAddress{ipAddress}, data{} {};
+NmapRunner::NmapRunner(const std::string& ipAddress) : ipAddress{ipAddress} {};
 
-int NmapRunner::service_script_scan(){
+int NmapRunner::service_script_scan(std::string& data){
     const char* params[]{"nmap", "-Pn", "-n", "-sC", "-sV", "-oA", ipAddress.c_str(), nullptr};
-    data.clear();
     int result = spawnProc(&data, params);
     if(result != 0){
         std::cout << "There was a failure spawning a process for servuce script scan" << std::endl;
@@ -14,9 +13,8 @@ int NmapRunner::service_script_scan(){
     return result;
 }
 
-int NmapRunner::udp_scan(){
+int NmapRunner::udp_scan(std::string& data){
     const char* params[]{"nmap", "-Pn", "-n", "-sUV", "-A", ipAddress.c_str(), nullptr};
-    data.clear();
     int result = spawnProc(&data, params);
     if(result != 0){
         std::cout << "There was a failure spawning a process for UDP scan" << std::endl;
@@ -24,9 +22,8 @@ int NmapRunner::udp_scan(){
     return 0;
 }
 
-int NmapRunner::simple_scan(){
+int NmapRunner::simple_scan(std::string& data){
     const char* params[]{"nmap", "-Pn", "-n", "-v", "-sT", "-A", ipAddress.c_str(), nullptr};
-    data.clear();
     int result = spawnProc(&data, params);
     if(result != 0){
         std::cout << "There was a failure spawning a process for simple scan" << std::endl;
@@ -34,9 +31,8 @@ int NmapRunner::simple_scan(){
     return result;
 }
 
-int NmapRunner::full_tcp_scan(){
+int NmapRunner::full_tcp_scan(std::string& data){
     const char* params[]{"nmap", "-Pn", "-n", "-v", "-sT", "-p-", ipAddress.c_str(), nullptr};
-    data.clear();
     int result = spawnProc(&data, params);
     if(result != 0){
         std::cout << "There was a failure spawning a process for full tcp scan" << std::endl;
@@ -44,9 +40,8 @@ int NmapRunner::full_tcp_scan(){
     return result;
 }
 
-int NmapRunner::vuln_scan(){
+int NmapRunner::vuln_scan(std::string& data){
     const char* params[]{"nmap", "-Pn", "-n", "--script=vuln", "-sT", "-A", ipAddress.c_str(), nullptr};
-    data.clear();
     int result = spawnProc(&data, params);
     if(result != 0){
         std::cout << "There was a failure spawning a process for vuln scan" << std::endl;
@@ -54,18 +49,13 @@ int NmapRunner::vuln_scan(){
     return result;
 }
 
+// int NmapRunner::suggested_scans(){
+//     try{
 
-int NmapRunner::suggested_scans(){
-    try{
-        simple_scan();
-        full_tcp_scan();
-        vuln_scan();
-        udp_scan();
-        service_script_scan();
-    } catch ( const std::exception& e){
-        std::cout << "A standard exception was caught, with message: '" << e.what() << "'\n";
-    }
+//     } catch ( const std::exception& e){
+//         std::cout << "A standard exception was caught, with message: '" << e.what() << "'\n";
+//     }
 
 
-    return 0;
-}
+//     return 0;
+// }

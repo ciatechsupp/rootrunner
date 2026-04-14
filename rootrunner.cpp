@@ -1,7 +1,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <pthread.h>
+#include <fstream>
+#include <iostream>
 #include "nmaprunner.hpp"
 
 //Scan name: scan result
@@ -17,7 +18,7 @@ class RootRunner{
     public:
         RootRunner(std::string ipAddr)
             : targetIp {ipAddr},
-            nmapInstance {targetIp} {
+            nmapInstance {targetIp}{
                 run_initial_scan();
             }
 
@@ -31,7 +32,41 @@ class RootRunner{
         }
 
         int run_initial_scan(){
-            return 0;
+            std::string data;
+
+            nmapInstance.simple_scan(data);
+            addScanResult("Nmap","nmap_simple_scan", data);
+            data.clear();
+            nmapInstance.full_tcp_scan(data);
+            addScanResult("Nmap", "nmap_full_tcp_scan", data);
+            data.clear();
+            nmapInstance.vuln_scan(data);
+            addScanResult("Nmap", "nmap_vuln_scan", data);
+            data.clear();
+            nmapInstance.udp_scan(data);
+            addScanResult("Nmap", "nmap_udp_scan", data);
+            data.clear();
+            nmapInstance.service_script_scan(data);
+            addScanResult("Nmap","nmap_service_script_scan", data);
+            data.clear();
+
+            std::ofstream outFile("output.txt");
+
+            if (!outFile.is_open()){
+                std::cerr << "Error: Could not open file for writing." << std::endl;
+                return 1;
+            }
+
+            for (auto outerIt = scanResults.begin(); outerIt != scanResults.end(); ++outerIt){
+                outFile << outerIt->first << " Scans" << std::endl;
+                outFile << "-----------------------\n" << std::endl;
+                for (auto innerIt = outerIt->second.begin(); innerIt != outerIt->second.end(); ++innerIt){
+                    outFile << innerIt->first << " Scan Results" << std::endl;
+                    outFile << "[-------------]" << std::endl;
+                    outFile << innerIt->second << std::endl;
+                }
+            }
+
         }
 
         // int nmapRunner(){
