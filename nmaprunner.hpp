@@ -1,13 +1,12 @@
 #ifndef NMAPRUNNER_HPP
 #define NMAPRUNNER_HPP
 #include <string>
-#include <unordered_map>
+#include <map>
 #include "executor.hpp"
 
 
 class NmapRunner{
-    const std::string& ipAddress;
-    std::string data;
+    const std::string ipAddress;
 
     public:
         NmapRunner(const std::string& ipAddress);

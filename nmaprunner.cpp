@@ -5,10 +5,10 @@
 NmapRunner::NmapRunner(const std::string& ipAddress) : ipAddress{ipAddress} {};
 
 int NmapRunner::service_script_scan(std::string& data){
-    const char* params[]{"nmap", "-Pn", "-n", "-sC", "-sV", "-oA", ipAddress.c_str(), nullptr};
+    const char* params[]{"nmap", "-Pn", "-n", "-sC", "-sV", ipAddress.c_str(), nullptr};
     int result = spawnProc(&data, params);
     if(result != 0){
-        std::cout << "There was a failure spawning a process for servuce script scan" << std::endl;
+        std::cout << "There was a failure spawning a process for service script scan" << std::endl;
     }
     return result;
 }

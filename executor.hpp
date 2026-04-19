@@ -11,8 +11,8 @@
 #include <string>
 #include <vector>
 
-template<typename T, std::size_t N>
-int spawnProc(std::string *output, T (&args)[N]){
+template<std::size_t N>
+int spawnProc(std::string *output, const char* (&args)[N]){
 //Command: nmap -Pn -sC -sV -oA [NAME_FOR_SCAN_FILES]
 // fork a new process, set nmap and cli args for new process, run process, catch output via pipe
     int pipefd[2];
