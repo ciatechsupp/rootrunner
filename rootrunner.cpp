@@ -7,23 +7,30 @@
 class RootRunner {
 private:
   std::string targetIp;
+  std::vector<ScanJob> jobs;
   ScanResults scanResults;
-  NmapRunner nmapInstance;
+  NmapRunner runner;
 
 public:
-  RootRunner(std::string ipAddr) : targetIp{ipAddr}, nmapInstance{targetIp} {
-    run_initial_scan();
+  RootRunner(std::string ipAddr) : targetIp{ipAddr} {
+    jobs = {
+      {"Nmap", NmapScanType::Simple, targetIp},
+      {"Nmap", NmapScanType::FullTCP, targetIp},
+      {"Nmap", NmapScanType::UDP, targetIp},
+      {"Nmap", NmapScanType::ServiceScript, targetIp},
+      {"Nmap", NmapScanType::Vuln, targetIp}
+    };
+    run();
   }
 
-  int addScanResult(const std::string &scanType, const std::string &scanName,
-                    const std::string &scanOutput) {
-    scanResults[scanType][scanName] = scanOutput;
+  int addScanResult(const std::string &scanType,
+                    const ScanResult &scanResult) {
+    scanResults[scanType] = scanResult;
     return 0;
   }
 
-  const std::string &getScanResult(const std::string &scanType,
-                                   const std::string &scanName) {
-    return scanResults[scanType][scanName];
+  const std::string &getScanResult(const std::string &scanType) {
+    return scanResults[scanType].stdoutData;
   }
 
   int writeStatusLog(const std::string &fileName) {
@@ -35,20 +42,15 @@ public:
         return 1;
       }
 
-      for (const auto &outerScanResult : scanResults) {
-        const std::string &scanProvider = outerScanResult.first;
-        const auto &scanData = outerScanResult.second;
+      for (const auto &scan : scanResults) {
+        const std::string &scanType = scan.first;
+        const auto &scanResultData = scan.second;
 
-        outFile << scanProvider << " Scans" << std::endl;
+        outFile << scanResultData.job.tool << "->" << scanType << " Scan" << std::endl;
         outFile << "----------------------\n" << std::endl;
-        for (const auto &scanResult : scanData) {
-          const std::string &specificScan = scanResult.first;
-          const std::string &specificScanData = scanResult.second;
-
-          outFile << specificScan << " Scan Results" << std::endl;
-          outFile << "[--------------]" << std::endl;
-          outFile << specificScanData << std::endl;
-        }
+        outFile << "Scan Results" << std::endl;
+        outFile << "[----------------------]" << std::endl;
+        outFile << scanResultData.stdoutData << std::endl;
       }
       outFile.close();
     } catch (const std::exception &e) {
@@ -58,24 +60,39 @@ public:
     return 0;
   }
 
-  int run_initial_scan() {
-    std::string data;
-    nmapInstance.simple_scan(data);
-    addScanResult("Nmap", "nmap_simple_scan", data);
-    data.clear();
-    nmapInstance.full_tcp_scan(data);
-    addScanResult("Nmap", "nmap_full_tcp_scan", data);
-    data.clear();
-    nmapInstance.vuln_scan(data);
-    addScanResult("Nmap", "nmap_vuln_scan", data);
-    data.clear();
-    nmapInstance.udp_scan(data);
-    addScanResult("Nmap", "nmap_udp_scan", data);
-    data.clear();
-    nmapInstance.service_script_scan(data);
-    addScanResult("Nmap", "nmap_service_script_scan", data);
-    data.clear();
-    writeStatusLog(targetIp);
+  int run() {
+
+    for (const auto& job : jobs){
+      ScanResult result = runner.run(job);
+      addScanResult(
+        toString(job.type),
+        result
+      );
+    }
+
+    std::string outputFileName = targetIp + "_output.txt";
+
+    writeStatusLog(outputFileName);
+
+    // std::string data;
+    // nmapInstance.simple_scan(data);
+    // addScanResult("Nmap", "nmap_simple_scan", data);
+    // data.clear();
+    // nmapInstance.full_tcp_scan(data);
+    // addScanResult("Nmap", "nmap_full_tcp_scan", data);
+    // data.clear();
+    // nmapInstance.vuln_scan(data);
+    // addScanResult("Nmap", "nmap_vuln_scan", data);
+    // data.clear();
+    // nmapInstance.udp_scan(data);
+    // addScanResult("Nmap", "nmap_udp_scan", data);
+    // data.clear();
+    // nmapInstance.service_script_scan(data);
+    // addScanResult("Nmap", "nmap_service_script_scan", data);
+    // data.clear();
+    // writeStatusLog(targetIp);
+    // return 0;
+
     return 0;
   }
 

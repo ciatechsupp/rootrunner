@@ -1,11 +1,8 @@
 #ifndef UTILITIES_HPP
 #define UTILITIES_HPP
-#include <map>
 #include <string>
 #include <vector>
 
-typedef std::map<std::string, std::string> ScanResult;
-typedef std::map<std::string, ScanResult> ScanResults;
 
 struct ServiceInfo {
   int port;
@@ -22,6 +19,18 @@ struct HttpInfo {
 struct SmbInfo {
   std::vector<std::string> shares;
 };
+
+std::string toString(NmapScanType type){
+  switch(type)
+  {
+    case NmapScanType::Simple: return "Simple";
+    case NmapScanType::FullTCP: return "FullTCP";
+    case NmapScanType::UDP: return "UDP";
+    case NmapScanType::ServiceScript: return "ServiceScript";
+    case NmapScanType::Vuln: return "Vuln";
+  }
+  return "Unknown";
+}
 
 bool fileExists(const std::string &path);
 

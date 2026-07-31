@@ -1,35 +1,63 @@
 #include "nmaprunner.hpp"
 #include <iostream>
 
-NmapRunner::NmapRunner(const std::string &ipAddress) : ipAddress{ipAddress} {};
+ScanResult NmapRunner::run(const ScanJob& job){
+    
+    ScanResult newScanResult;
+    newScanResult.job = job;
 
-int NmapRunner::service_script_scan(std::string &data) {
-  const char *params[]{"nmap", "-Pn", "-n", "-sC", "-sV", ipAddress.c_str(),
-                       nullptr};
-  return executeScan(data, params);
-}
+    std::vector<std::string> args = buildArgs(job);
 
-int NmapRunner::udp_scan(std::string &data) {
-  const char *params[]{"nmap", "-Pn", "-n", "-sUV", "-A", ipAddress.c_str(),
-                       nullptr};
-  return executeScan(data, params);
-}
+    int exitCode = spawnProc(newScanResult.stdoutData, args);
+    if (exitCode != 0) {
+    std::cout << "There was a failure spawning a process for nmap scan"<< std::endl;
+    }
+    return newScanResult;
+};
 
-int NmapRunner::simple_scan(std::string &data) {
-  const char *params[]{
-      "nmap", "-Pn", "-n", "-v", "-sT", "-A", ipAddress.c_str(), nullptr};
-  return executeScan(data, params);
-}
+std::vector<std::string> NmapRunner::buildArgs(
+    const ScanJob& job){
 
-int NmapRunner::full_tcp_scan(std::string &data) {
-  const char *params[]{
-      "nmap", "-Pn", "-n", "-v", "-sT", "-p-", ipAddress.c_str(), nullptr};
-  return executeScan(data, params);
-}
+    std::vector<std::string> args;
+    args.push_back("nmap");
 
-int NmapRunner::vuln_scan(std::string &data) {
-  const char *params[]{
-      "nmap", "-Pn", "-n", "--script=vuln", "-sT", "-A", ipAddress.c_str(),
-      nullptr};
-  return executeScan(data, params);
+    switch(job.type){
+        case NmapScanType::Simple:
+            args.push_back("-Pn");
+            args.push_back("-n");
+            args.push_back("-v");
+            args.push_back("-sT");
+            args.push_back("-A");
+            break;
+        case NmapScanType::FullTCP:
+            args.push_back("-Pn");
+            args.push_back("-n");
+            args.push_back("-v");
+            args.push_back("-sT");
+            args.push_back("-p-");
+            break;
+        case NmapScanType::UDP:
+            args.push_back("-Pn");
+            args.push_back("-n");
+            args.push_back("-sUV");
+            args.push_back("-A");
+            break;
+        case NmapScanType::ServiceScript:
+            args.push_back("-Pn");
+            args.push_back("-n");
+            args.push_back("-sC");
+            args.push_back("-sV");
+            break;
+        case NmapScanType::Vuln:
+            args.push_back("-Pn");
+            args.push_back("-n");
+            args.push_back("--script=vuln");
+            args.push_back("-sT");
+            args.push_back("-A");
+            break;
+    }
+
+    args.push_back(job.target);
+
+    return args;
 }
