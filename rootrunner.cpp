@@ -1,8 +1,8 @@
 #include "nmaprunner.hpp"
-#include "utilities.hpp"
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <thread>
 
 class RootRunner {
 private:
@@ -19,8 +19,7 @@ public:
       {"Nmap", NmapScanType::UDP, targetIp},
       {"Nmap", NmapScanType::ServiceScript, targetIp},
       {"Nmap", NmapScanType::Vuln, targetIp}
-    };
-    run();
+    };  
   }
 
   int addScanResult(const std::string &scanType,
@@ -62,13 +61,34 @@ public:
 
   int run() {
 
-    for (const auto& job : jobs){
-      ScanResult result = runner.run(job);
+    std::vector<std::thread> threads;
+    std::vector<ScanResult> results(jobs.size());
+
+    for (size_t i = 0; i < jobs.size(); ++i){
+      threads.emplace_back([&, i]{
+        std::cout << "Starting " << toString(jobs[i].type) << " on " << jobs[i].target << std::endl;
+        results[i] = runner.run(jobs[i]);
+      });
+    }
+
+    for (auto& t : threads){
+      t.join();
+    }
+
+    for (const auto& result : results){
       addScanResult(
-        toString(job.type),
+        toString(result.job.type),
         result
       );
     }
+
+    // for (const auto& job : jobs){
+    //   ScanResult result = runner.run(job);
+    //   addScanResult(
+    //     toString(job.type),
+    //     result
+    //   );
+    // }
 
     std::string outputFileName = targetIp + "_output.txt";
 
@@ -126,6 +146,7 @@ int main(int argc, char *argv[]) {
       continue;
 
     RootRunner r(ip);
+    r.run();
   }
 
   return 0;

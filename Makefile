@@ -1,7 +1,7 @@
 CXX = clang++
 CXXFLAGS = -Wall -Wextra -std=c++20 -static
 TARGET = rootrunner
-SOURCES = rootrunner.cpp nmaprunner.cpp executor.cpp utilities.cpp
+SOURCES = rootrunner.cpp nmaprunner.cpp executor.cpp
 OBJS = $(SOURCES:.cpp=.o)
 
 all: $(TARGET)
@@ -17,11 +17,6 @@ nmaprunner.o: nmaprunner.cpp nmaprunner.hpp executor.hpp
 
 executor.o: executor.cpp executor.hpp
 	$(CXX) $(CXXFLAGS) -c executor.cpp -o executor.o
-
-utilities.o: utilities.cpp utilities.hpp
-	$(CXX) $(CXXFLAGS) -c utilities.cpp -o utilities.o
-
-
 
 clean:
 	rm -f $(OBJS) $(TARGET)

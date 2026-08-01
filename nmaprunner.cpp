@@ -12,6 +12,8 @@ ScanResult NmapRunner::run(const ScanJob& job){
     if (exitCode != 0) {
     std::cout << "There was a failure spawning a process for nmap scan"<< std::endl;
     }
+    newScanResult.exitCode = exitCode;
+    std::cout << "Finished " << toString(job.type) << " on " << job.target << " with exit code:" << newScanResult.exitCode << std::endl;
     return newScanResult;
 };
 
@@ -40,6 +42,7 @@ std::vector<std::string> NmapRunner::buildArgs(
             args.push_back("-Pn");
             args.push_back("-n");
             args.push_back("-sUV");
+            args.push_back("-p 53,67,68,69,123,137,138,161,162,500,514");
             args.push_back("-A");
             break;
         case NmapScanType::ServiceScript:
@@ -60,4 +63,16 @@ std::vector<std::string> NmapRunner::buildArgs(
     args.push_back(job.target);
 
     return args;
+}
+
+std::string toString(NmapScanType type){
+  switch(type)
+  {
+    case NmapScanType::Simple: return "Simple";
+    case NmapScanType::FullTCP: return "FullTCP";
+    case NmapScanType::UDP: return "UDP";
+    case NmapScanType::ServiceScript: return "ServiceScript";
+    case NmapScanType::Vuln: return "Vuln";
+  }
+  return "Unknown";
 }
