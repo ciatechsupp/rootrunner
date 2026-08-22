@@ -66,7 +66,7 @@ public:
 
     for (size_t i = 0; i < jobs.size(); ++i){
       threads.emplace_back([&, i]{
-        std::cout << "Starting " << toString(jobs[i].type) << " on " << jobs[i].target << std::endl;
+        logMessage("Starting " + toString(jobs[i].type) + " on " + jobs[i].target);
         results[i] = runner.run(jobs[i]);
       });
     }

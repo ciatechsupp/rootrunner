@@ -1,93 +1,102 @@
 #include "executor.hpp"
+#include <cerrno>
 
+extern char **environ;
 
-int spawnProc(std::string& stdoutData, const std::vector<std::string> args) {
-  // Command: nmap -Pn -sC -sV -oA [NAME_FOR_SCAN_FILES]
-  //  fork a new process, set nmap and cli args for new process, run process,
-  //  catch output via pipe
-  int pipefd[2];
-  pid_t cpid;
-  // pipe(pipefd);
-
-  if (pipe(pipefd) == -1) {
-    perror("pipe");
-    exit(EXIT_FAILURE);
+static std::string resolveExecutable(const std::string& name) {
+  if (name.find('/') != std::string::npos) {
+    return access(name.c_str(), X_OK) == 0 ? name : std::string();
   }
 
-  cpid = fork();
+  const char *pathEnv = getenv("PATH");
+  std::string pathList = pathEnv ? pathEnv : "/usr/local/bin:/usr/bin:/bin";
+
+  size_t start = 0;
+  while (start <= pathList.size()) {
+    size_t end = pathList.find(':', start);
+    std::string dir = pathList.substr(
+        start, end == std::string::npos ? std::string::npos : end - start);
+    if (dir.empty()) {
+      dir = ".";
+    }
+
+    std::string candidate = dir + "/" + name;
+    if (access(candidate.c_str(), X_OK) == 0) {
+      return candidate;
+    }
+
+    if (end == std::string::npos) {
+      break;
+    }
+    start = end + 1;
+  }
+
+  return std::string();
+}
+
+int spawnProc(std::string& stdoutData, const std::vector<std::string> args) {
+  if (args.empty()) {
+    logError("spawnProc: no command provided");
+    return -1;
+  }
+
+  int pipefd[2];
+  if (pipe(pipefd) == -1) {
+    perror("pipe");
+    return -1;
+  }
+
+  std::string executable = resolveExecutable(args.front());
+  if (executable.empty()) {
+    logError("spawnProc: executable not found: " + args.front());
+    close(pipefd[0]);
+    close(pipefd[1]);
+    return -1;
+  }
+
+  std::vector<char*> argv;
+  argv.reserve(args.size() + 1);
+  for (const auto& arg : args) {
+    argv.push_back(const_cast<char*>(arg.c_str()));
+  }
+  argv.push_back(nullptr);
+
+  pid_t cpid = fork();
   if (cpid == -1) {
     perror("fork");
-    exit(EXIT_FAILURE);
+    close(pipefd[0]);
+    close(pipefd[1]);
+    return -1;
   }
 
   if (cpid == 0) {
     close(pipefd[0]);
 
-    dup2(pipefd[1], STDOUT_FILENO);
-    dup2(pipefd[1], STDERR_FILENO);
+    if (dup2(pipefd[1], STDOUT_FILENO) == -1 ||
+        dup2(pipefd[1], STDERR_FILENO) == -1) {
+      _exit(127);
+    }
 
     close(pipefd[1]);
 
-    // C version, assuming upAddress is a std::string
-    //  const char* args[] = {
-    //      "nmap",
-    //      "-Pn",
-    //      "-sC",
-    //      "-sV",
-    //      ipAddress.c_str(), // user input string
-    //      nullptr
-    //  };
+    execve(executable.c_str(), argv.data(), environ);
 
-    // std::vector<std::string> argStrings{args...};
-    std::vector<char*> argv;
-
-    for (const auto& arg : args) {
-        argv.push_back(const_cast<char*>(arg.c_str()));
-    }
-
-    argv.push_back(nullptr);
-
-    // execvp("nmap", const_cast<char* const*>(args));
-
-    execvp(argv[0], argv.data());
-
-    // C++ version
-    //  std::vector<std::string> argStrings{"nmap", "-Pn", "-sC", "-sV",
-    //  ipAddress}; std::vector<char*> argss; for (auto &s: argStrings)
-    //  argss.push_back(s.data()); argss.push_back(nullptr);
-
-    // execvp("nmap", argss.data());
-
-    perror("execvp failed");
-    exit(EXIT_FAILURE);
-  } else {
-    close(pipefd[1]);
-
-    char buffer[4096];
-    ssize_t count;
-    // std::string output;
-
-    while ((count = read(pipefd[0], buffer, sizeof(buffer))) > 0) {
-      stdoutData.append(buffer, count);
-    }
-
-    close(pipefd[0]);
-
-    waitpid(cpid, nullptr, 0);
-
-    // int fd = open("nmap_initial_scan_output.txt", O_CREAT | O_TRUNC |
-    // O_WRONLY, 0640); if (fd == -1){
-    //     perror("Couldn't open output file for nmap log");
-    //     exit(EXIT_FAILURE);
-    // }
-
-    // if (write(fd, output.data(), output.size()) == -1){
-    //     perror("Couldn't write nmap log data to output file");
-    //     exit(EXIT_FAILURE);
-    // };
-
-    // close(fd);
-
-    return 0;
+    _exit(127);
   }
+
+  close(pipefd[1]);
+
+  char buffer[4096];
+  ssize_t count;
+
+  while ((count = read(pipefd[0], buffer, sizeof(buffer))) > 0) {
+    stdoutData.append(buffer, count);
+  }
+
+  close(pipefd[0]);
+
+  while (waitpid(cpid, nullptr, 0) == -1 && errno == EINTR) {
+  }
+
+  return 0;
 }

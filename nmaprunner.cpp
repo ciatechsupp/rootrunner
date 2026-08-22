@@ -1,5 +1,4 @@
 #include "nmaprunner.hpp"
-#include <iostream>
 
 ScanResult NmapRunner::run(const ScanJob& job){
     
@@ -10,10 +9,10 @@ ScanResult NmapRunner::run(const ScanJob& job){
 
     int exitCode = spawnProc(newScanResult.stdoutData, args);
     if (exitCode != 0) {
-    std::cout << "There was a failure spawning a process for nmap scan"<< std::endl;
+    logMessage("There was a failure spawning a process for nmap scan");
     }
     newScanResult.exitCode = exitCode;
-    std::cout << "Finished " << toString(job.type) << " on " << job.target << " with exit code:" << newScanResult.exitCode << std::endl;
+    logMessage("Finished " + toString(job.type) + " on " + job.target + " with exit code:" + std::to_string(newScanResult.exitCode));
     return newScanResult;
 };
 
@@ -37,6 +36,7 @@ std::vector<std::string> NmapRunner::buildArgs(
             args.push_back("-v");
             args.push_back("-sT");
             args.push_back("-p-");
+            args.push_back("-T5");
             break;
         case NmapScanType::UDP:
             args.push_back("-Pn");
