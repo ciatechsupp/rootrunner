@@ -66,7 +66,7 @@ public:
 
     for (size_t i = 0; i < jobs.size(); ++i){
       threads.emplace_back([&, i]{
-        logMessage("Starting " + toString(jobs[i].type) + " on " + jobs[i].target);
+        logMessage("Starting " + scanTypetoString(jobs[i].type) + " on " + jobs[i].target + " with command line:" + scanArgstoString(buildArgs(jobs[i])));
         results[i] = runner.run(jobs[i]);
       });
     }
@@ -77,7 +77,7 @@ public:
 
     for (const auto& result : results){
       addScanResult(
-        toString(result.job.type),
+        scanTypetoString(result.job.type),
         result
       );
     }

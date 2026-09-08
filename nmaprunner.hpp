@@ -36,17 +36,19 @@ struct ScanResult
 
 typedef std::map<std::string, ScanResult> ScanResults;
 
-std::string toString(NmapScanType type);
+std::string scanTypetoString(NmapScanType type);
+std::vector<std::string> buildArgs(const ScanJob& job);
+std::string scanArgstoString(const std::vector<std::string>& builtArgs);
 
 class NmapRunner {
 
   public:
     ScanResult run(const ScanJob& job);
 
-  private:
-    std::vector<std::string> buildArgs(
-      const ScanJob& job
-    );
+  // private:
+  //   std::vector<std::string> buildArgs(
+  //     const ScanJob& job
+  //   );
 };
 
 #endif

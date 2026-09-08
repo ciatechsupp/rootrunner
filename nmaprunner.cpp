@@ -12,11 +12,11 @@ ScanResult NmapRunner::run(const ScanJob& job){
     logMessage("There was a failure spawning a process for nmap scan");
     }
     newScanResult.exitCode = exitCode;
-    logMessage("Finished " + toString(job.type) + " on " + job.target + " with exit code:" + std::to_string(newScanResult.exitCode));
+    logMessage("Finished " + scanTypetoString(job.type) + " on " + job.target + " with exit code:" + std::to_string(newScanResult.exitCode));
     return newScanResult;
 };
 
-std::vector<std::string> NmapRunner::buildArgs(
+std::vector<std::string> buildArgs(
     const ScanJob& job){
 
     std::vector<std::string> args;
@@ -65,7 +65,16 @@ std::vector<std::string> NmapRunner::buildArgs(
     return args;
 }
 
-std::string toString(NmapScanType type){
+std::string scanArgstoString(const std::vector<std::string>& builtArgs){
+    std::string argsString;
+    for (const auto& a: builtArgs){
+        argsString += " " + a;
+    }
+
+    return argsString;
+}
+
+std::string scanTypetoString(NmapScanType type){
   switch(type)
   {
     case NmapScanType::Simple: return "Simple";
